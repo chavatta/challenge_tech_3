@@ -96,12 +96,12 @@ def create_rule():
         return jsonify(new_rule), 201
     except psycopg2.IntegrityError:
         if conn:
-    conn.rollback()
+                conn.rollback()
         log.warning(f"Tentativa de criar regra duplicada: '{flag_name}'")
         return jsonify({"error": f"Regra para a flag '{flag_name}' já existe"}), 409
     except Exception as e:
         if conn:
-    conn.rollback()
+                conn.rollback()
         log.error(f"Erro ao criar regra: {e}")
         return jsonify({"error": "Erro interno do servidor", "details": str(e)}), 500
     finally:
@@ -170,7 +170,7 @@ def update_rule(flag_name):
         return jsonify(updated_rule), 200
     except Exception as e:
         if conn:
-    conn.rollback()
+                conn.rollback()
         log.error(f"Erro ao atualizar regra '{flag_name}': {e}")
         return jsonify({"error": "Erro interno do servidor", "details": str(e)}), 500
     finally:
@@ -196,7 +196,7 @@ def delete_rule(flag_name):
         return "", 204 # 204 No Content
     except Exception as e:
         if conn:
-    conn.rollback()
+                conn.rollback()
         log.error(f"Erro ao deletar regra '{flag_name}': {e}")
         return jsonify({"error": "Erro interno do servidor", "details": str(e)}), 500
     finally:
