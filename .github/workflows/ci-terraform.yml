@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths:
       - "terraform/**"
+      - "gitops/argocd/**"
       - ".github/workflows/ci-terraform.yml"
   pull_request:
     paths:
       - "terraform/**"
+      - "gitops/argocd/**"
       - ".github/workflows/ci-terraform.yml"
 
 env:
@@ -130,3 +132,11 @@ jobs:
           terraform apply \
             -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
             -auto-approve
+
+      - name: Configurar kubectl
+        run: |
+          aws eks update-kubeconfig --name togglemaster-dev-eks --region ${{ env.AWS_REGION }}
+
+      - name: Aplicar ArgoCD Applications
+        run: |
+          kubectl apply -f gitops/argocd/
