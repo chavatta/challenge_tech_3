@@ -1,5 +1,5 @@
 resource "aws_elasticache_subnet_group" "this" {
-  name       = replace("${var.name_prefix}-redis-sub", "_", "-")
+  name       = replace("${var.name_prefix}-redis-subnet", "_", "-")
   subnet_ids = var.private_subnet_ids
 
   tags = {

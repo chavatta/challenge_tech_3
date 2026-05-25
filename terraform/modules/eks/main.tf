@@ -25,11 +25,30 @@ resource "aws_eks_cluster" "this" {
   }
 }
 
+resource "aws_launch_template" "eks_nodes" {
+  name_prefix = "${var.name_prefix}-eks-ng-"
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
+  }
+
+  tags = {
+    Name = "${var.name_prefix}-eks-ng-lt"
+  }
+}
+
 resource "aws_eks_node_group" "this" {
   cluster_name    = aws_eks_cluster.this.name
-  node_group_name = "${var.name_prefix}-ng"
+  node_group_name = "${var.name_prefix}-eks-ng"
   node_role_arn   = local.node_role_arn
   subnet_ids      = var.private_subnet_ids
+
+  launch_template {
+    id      = aws_launch_template.eks_nodes.id
+    version = aws_launch_template.eks_nodes.latest_version
+  }
 
   scaling_config {
     desired_size = var.node_desired_size
@@ -44,6 +63,6 @@ resource "aws_eks_node_group" "this" {
   }
 
   tags = {
-    Name = "${var.name_prefix}-ng"
+    Name = "${var.name_prefix}-eks-ng"
   }
 }
