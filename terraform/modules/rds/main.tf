@@ -1,5 +1,5 @@
 resource "aws_db_subnet_group" "this" {
-  name_prefix = "${replace(var.name_prefix, "_", "-")}-sub-"
+  name_prefix = "${replace(var.name_prefix, "_", "-")}-db-subnet-"
   subnet_ids  = var.private_subnet_ids
 
   tags = {
@@ -25,6 +25,6 @@ resource "aws_db_instance" "this" {
   auto_minor_version_upgrade = true
 
   tags = {
-    Name = var.name_prefix
+    Name = "${var.name_prefix}-db"
   }
 }

@@ -30,7 +30,7 @@ resource "aws_security_group" "rds" {
 resource "aws_security_group" "redis" {
   name_prefix = "${var.name_prefix}-redis-"
   vpc_id      = var.vpc_id
-  description = "PostgreSQL access from EKS cluster"
+  description = "Redis access from EKS cluster"
 
   ingress {
     description     = "Redis do cluster EKS"
