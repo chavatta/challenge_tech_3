@@ -5,12 +5,12 @@ on:
     branches: [main]
     paths:
       - "terraform/**"
-      - "gitops/argocd/**"
+      - "gitops/**"
       - ".github/workflows/ci-terraform.yml"
   pull_request:
     paths:
       - "terraform/**"
-      - "gitops/argocd/**"
+      - "gitops/**"
       - ".github/workflows/ci-terraform.yml"
 
 env:

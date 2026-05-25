@@ -5,11 +5,9 @@ metadata:
   namespace: togglemaster
 data:
   PORT: "8004"
-  # ElastiCache (Serverless/Valkey com encryption in transit): use rediss:// (TLS).
-  # Local/docker-compose continua com redis://redis:6379 no .env, não este manifesto.
-  REDIS_URL: "rediss://togglemaster-dev-redis.xjgkrr.ng.0001.use1.cache.amazonaws.com:6379"
-  FLAG_SERVICE_URL: "http://flag-service.flag.svc.cluster.local"
-  TARGETING_SERVICE_URL: "http://targeting-service.targeting.svc.cluster.local"
+  REDIS_URL: "redis://togglemaster-dev-redis.letkoj.ng.0001.use1.cache.amazonaws.com:6379"
+  FLAG_SERVICE_URL: "http://flag-service.togglemaster.svc.cluster.local:8002"
+  TARGETING_SERVICE_URL: "http://targeting-service.togglemaster.svc.cluster.local:8003"
   AWS_REGION: "us-east-1"
   # Deixe vazio se não usar SQS; preencha a URL da fila em produção
   AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/742792279914/togglemaster-events"

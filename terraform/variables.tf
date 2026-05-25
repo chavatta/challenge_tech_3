@@ -115,3 +115,17 @@ variable "rds_databases" {
   description = "Identificadores lógicos das 3 instâncias RDS."
   default     = ["auth", "flag", "targeting"]
 }
+
+variable "master_key" {
+  type        = string
+  description = "Chave mestre para o serviço de autenticação."
+  default     = "admin-secreto-123"
+  sensitive   = true
+}
+
+variable "service_api_key" {
+  type        = string
+  description = "API key usada pelo evaluation service para comunicação interna."
+  default     = "default-service-key"
+  sensitive   = true
+}
