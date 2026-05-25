@@ -170,5 +170,5 @@ networks:
     driver: bridge
     internal: true
   cache-network:
-    driver: bridge 
+    driver: bridge
     internal: true
