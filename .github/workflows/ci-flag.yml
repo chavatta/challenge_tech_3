@@ -7,11 +7,17 @@ on:
       - "services/flag/**"
       - ".github/workflows/ci-flag.yml"
       - ".github/workflows/reusable-python-microservice.yml"
+      - ".golangci.yml"
+      - "docker-compose.yml"
+      - "Makefile"
   pull_request:
     paths:
       - "services/flag/**"
       - ".github/workflows/ci-flag.yml"
       - ".github/workflows/reusable-python-microservice.yml"
+      - ".golangci.yml"
+      - "docker-compose.yml"
+      - "Makefile"
 
 jobs:
   pipeline:

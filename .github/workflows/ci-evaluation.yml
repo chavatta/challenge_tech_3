@@ -8,12 +8,16 @@ on:
       - ".github/workflows/ci-evaluation.yml"
       - ".github/workflows/reusable-go-microservice.yml"
       - ".golangci.yml"
+      - "docker-compose.yml"
+      - "Makefile"
   pull_request:
     paths:
       - "services/evaluation/**"
       - ".github/workflows/ci-evaluation.yml"
       - ".github/workflows/reusable-go-microservice.yml"
       - ".golangci.yml"
+      - "docker-compose.yml"
+      - "Makefile"
 
 jobs:
   pipeline:
