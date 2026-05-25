@@ -19,3 +19,4 @@ Thumbs.db
 *.pem
 .env
 .env.*
+__pycache__/
