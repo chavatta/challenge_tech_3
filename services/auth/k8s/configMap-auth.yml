@@ -5,3 +5,4 @@ metadata:
   namespace: auth
 data:
   PORT: "8001"
+

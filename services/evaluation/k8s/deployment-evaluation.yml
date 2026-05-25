@@ -21,7 +21,6 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8004
-
           envFrom:
             - configMapRef:
                 name: evaluation-config
@@ -49,3 +48,4 @@ spec:
               port: 8004
             initialDelaySeconds: 15
             periodSeconds: 20
+
