@@ -154,3 +154,7 @@ jobs:
       - name: Aplicar ArgoCD Applications
         run: |
           kubectl apply -f gitops/argocd/
+
+      - name: Reiniciar pods para aplicar novos secrets
+        run: |
+          kubectl rollout restart deployment -n togglemaster 2>/dev/null || true

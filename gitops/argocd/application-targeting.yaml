@@ -14,12 +14,6 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: togglemaster
-  ignoreDifferences:
-    - group: ""
-      kind: Secret
-      jsonPointers:
-        - /data
-        - /stringData
   syncPolicy:
     automated:
       prune: true
