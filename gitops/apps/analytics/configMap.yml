@@ -1,5 +1,10 @@
-# ConfigMap gerenciado pelo Terraform (kubernetes_config_map.analytics)
-# Endpoints de infraestrutura (SQS, DynamoDB) são injetados dinamicamente
-# a partir dos outputs do Terraform, sem necessidade de edição manual.
-#
-# Chaves gerenciadas: PORT, AWS_SQS_URL, AWS_DYNAMODB_TABLE, AWS_REGION
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: analytics-config
+  namespace: togglemaster
+data:
+  PORT: "8005"
+  AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/742792279914/togglemaster-events"
+  AWS_DYNAMODB_TABLE: "ToggleMasterAnalytics"
+  AWS_REGION: "us-east-1"
