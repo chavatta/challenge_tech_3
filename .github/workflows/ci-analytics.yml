@@ -8,12 +8,16 @@ on:
       - ".github/workflows/ci-analytics.yml"
       - ".github/workflows/reusable-python-microservice.yml"
       - ".golangci.yml"
+      - "docker-compose.yml"
+      - "Makefile"
   pull_request:
     paths:
       - "services/analytics/**"
       - ".github/workflows/ci-analytics.yml"
       - ".github/workflows/reusable-python-microservice.yml"
       - ".golangci.yml"
+      - "docker-compose.yml"
+      - "Makefile"
 
 jobs:
   pipeline:
