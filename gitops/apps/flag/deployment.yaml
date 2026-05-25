@@ -18,7 +18,7 @@ spec:
       containers:
         - name: flag-service
           # Troque pela sua imagem no registry (ex.: ECR)
-          image: 742792279914.dkr.ecr.us-east-1.amazonaws.com/togglemaster-flag:v1.0.0-01422d2f975d4eaa658d51ff3ae93d5ca6acd00a
+          image: 742792279914.dkr.ecr.us-east-1.amazonaws.com/togglemaster-flag:v1.0.0-c31fad3ee57c0c1a154127320c64d21a4cc7638f
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8002
@@ -27,7 +27,6 @@ spec:
                 name: flag-config
             - secretRef:
                 name: flag-secret
-
           resources:
             requests:
               cpu: "100m"
@@ -35,18 +34,15 @@ spec:
             limits:
               cpu: "500m"
               memory: "256Mi"
-
           readinessProbe:
             httpGet:
               path: /health
               port: 8002
             initialDelaySeconds: 5
             periodSeconds: 10
-
           livenessProbe:
             httpGet:
               path: /health
               port: 8002
             initialDelaySeconds: 15
             periodSeconds: 20
-
