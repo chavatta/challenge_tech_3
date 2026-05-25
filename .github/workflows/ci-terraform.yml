@@ -132,10 +132,6 @@ jobs:
           terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
             kubernetes_namespace.togglemaster togglemaster 2>/dev/null || true
           terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
-            kubernetes_config_map.evaluation togglemaster/evaluation-config 2>/dev/null || true
-          terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
-            kubernetes_config_map.analytics togglemaster/analytics-config 2>/dev/null || true
-          terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
             kubernetes_secret.auth_service togglemaster/auth-service-secret 2>/dev/null || true
           terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
             kubernetes_secret.flag_service togglemaster/flag-secret 2>/dev/null || true

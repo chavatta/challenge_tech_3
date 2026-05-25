@@ -154,38 +154,3 @@ resource "kubernetes_secret" "evaluation_service" {
   depends_on = [module.eks]
 }
 
-# --- Kubernetes ConfigMaps (endpoints dinâmicos de infraestrutura) ---
-
-resource "kubernetes_config_map" "evaluation" {
-  metadata {
-    name      = "evaluation-config"
-    namespace = kubernetes_namespace.togglemaster.metadata[0].name
-  }
-
-  data = {
-    PORT                   = "8004"
-    REDIS_URL              = "redis://${module.elasticache.primary_endpoint}:6379"
-    FLAG_SERVICE_URL       = "http://flag-service.togglemaster.svc.cluster.local:8002"
-    TARGETING_SERVICE_URL  = "http://targeting-service.togglemaster.svc.cluster.local:8003"
-    AWS_REGION             = var.aws_region
-    AWS_SQS_URL            = module.sqs.queue_url
-  }
-
-  depends_on = [module.eks, module.elasticache, module.sqs]
-}
-
-resource "kubernetes_config_map" "analytics" {
-  metadata {
-    name      = "analytics-config"
-    namespace = kubernetes_namespace.togglemaster.metadata[0].name
-  }
-
-  data = {
-    PORT               = "8005"
-    AWS_SQS_URL        = module.sqs.queue_url
-    AWS_DYNAMODB_TABLE = module.dynamodb.table_name
-    AWS_REGION         = var.aws_region
-  }
-
-  depends_on = [module.eks, module.sqs, module.dynamodb]
-}

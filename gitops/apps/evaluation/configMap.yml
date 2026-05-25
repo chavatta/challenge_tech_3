@@ -1,5 +1,12 @@
-# ConfigMap gerenciado pelo Terraform (kubernetes_config_map.evaluation)
-# Endpoints de infraestrutura (Redis, SQS) são injetados dinamicamente
-# a partir dos outputs do Terraform, sem necessidade de edição manual.
-#
-# Chaves gerenciadas: PORT, REDIS_URL, FLAG_SERVICE_URL, TARGETING_SERVICE_URL, AWS_REGION, AWS_SQS_URL
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evaluation-config
+  namespace: togglemaster
+data:
+  PORT: "8004"
+  REDIS_URL: "redis://togglemaster-dev-redis.letkoj.ng.0001.use1.cache.amazonaws.com:6379"
+  FLAG_SERVICE_URL: "http://flag-service.togglemaster.svc.cluster.local:8002"
+  TARGETING_SERVICE_URL: "http://targeting-service.togglemaster.svc.cluster.local:8003"
+  AWS_REGION: "us-east-1"
+  AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/742792279914/togglemaster-events"
