@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: auth-service-config
-  namespace: auth
+  namespace: togglemaster
 data:
   PORT: "8001"
 

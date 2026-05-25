@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: analytics-config
-  namespace: analytics
+  namespace: togglemaster
 data:
   PORT: "8005"
   # Preencha com a URL da fila SQS e a região (obrigatório para o worker)

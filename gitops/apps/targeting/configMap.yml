@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: targeting-config
-  namespace: targeting
+  namespace: togglemaster
 data:
   AUTH_SERVICE_URL: "http://auth-service.auth.svc.cluster.local"
   PORT: "8003"
