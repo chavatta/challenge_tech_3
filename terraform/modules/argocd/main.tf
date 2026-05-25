@@ -17,6 +17,11 @@ resource "helm_release" "argocd" {
   }
 
   set {
+    name  = "server.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-name"
+    value = "togglemaster-argocd"
+  }
+
+  set {
     name  = "server.insecure"
     value = "true"
   }

@@ -61,3 +61,5 @@ help:
 	echo "    aws         		- Login to AWS Cloud using AWS CLI"
 	echo "    push         		- Send all the container images to the private AWS ECR registry"
 	echo "    clean      		- Remove all the images generated in the make process"
+
+# CI trigger: shared file change forces all microservice workflows to rebuild
