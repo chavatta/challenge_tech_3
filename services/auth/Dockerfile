@@ -18,3 +18,4 @@ COPY --from=builder /app/auth-service .
 EXPOSE 8001
 
 ENTRYPOINT ["./auth-service"]
+

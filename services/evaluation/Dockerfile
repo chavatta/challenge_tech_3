@@ -18,3 +18,4 @@ COPY --from=builder /app/evaluation-service .
 EXPOSE 8004
 
 ENTRYPOINT ["./evaluation-service"]
+
