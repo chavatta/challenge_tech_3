@@ -110,7 +110,7 @@ resource "kubernetes_secret" "auth_service" {
   }
 
   data = {
-    DATABASE_URL = "postgres://${var.db_username}:${var.db_password}@${module.rds["auth"].db_endpoint}:5432/toggledb?sslmode=require"
+    DATABASE_URL = "postgres://${urlencode(var.db_username)}:${urlencode(var.db_password)}@${module.rds["auth"].db_endpoint}:5432/toggledb?sslmode=require"
     MASTER_KEY   = var.master_key
   }
 
@@ -124,7 +124,7 @@ resource "kubernetes_secret" "flag_service" {
   }
 
   data = {
-    FLAG_DATABASE_URL = "postgres://${var.db_username}:${var.db_password}@${module.rds["flag"].db_endpoint}:5432/toggledb?sslmode=require"
+    FLAG_DATABASE_URL = "postgres://${urlencode(var.db_username)}:${urlencode(var.db_password)}@${module.rds["flag"].db_endpoint}:5432/toggledb?sslmode=require"
   }
 
   depends_on = [module.eks, module.rds]
@@ -137,7 +137,7 @@ resource "kubernetes_secret" "targeting_service" {
   }
 
   data = {
-    TARGETING_DATABASE_URL = "postgres://${var.db_username}:${var.db_password}@${module.rds["targeting"].db_endpoint}:5432/toggledb?sslmode=require"
+    TARGETING_DATABASE_URL = "postgres://${urlencode(var.db_username)}:${urlencode(var.db_password)}@${module.rds["targeting"].db_endpoint}:5432/toggledb?sslmode=require"
   }
 
   depends_on = [module.eks, module.rds]
