@@ -16,7 +16,6 @@ services:
     networks:
       - services-network
       - databases-network
-
   evaluation-service:
     container_name: evaluation-service
     image: evaluation-service:v1
