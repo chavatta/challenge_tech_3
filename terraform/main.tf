@@ -88,6 +88,8 @@ module "argocd" {
   count  = var.enable_argocd ? 1 : 0
   source = "./modules/argocd"
 
+  admin_password = var.argo_password
+
   depends_on = [module.eks]
 }
 

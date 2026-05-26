@@ -26,5 +26,17 @@ resource "helm_release" "argocd" {
     value = "true"
   }
 
+  dynamic "set_sensitive" {
+    for_each = var.admin_password != "" ? [var.admin_password] : []
+    content {
+      name  = "configs.secret.argocdServerAdminPassword"
+      value = bcrypt(set_sensitive.value)
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [set_sensitive]
+  }
+
   timeout = 600
 }

@@ -98,6 +98,13 @@ variable "enable_argocd" {
   default     = true
 }
 
+variable "argo_password" {
+  type        = string
+  description = "Senha do admin do ArgoCD (bcrypt hash gerado automaticamente)."
+  sensitive   = true
+  default     = ""
+}
+
 variable "ecr_repositories" {
   type        = list(string)
   description = "Nomes dos repositórios ECR (5 microsserviços)."

@@ -75,7 +75,11 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ${{ env.TF_DIR }}
-        run: terraform plan -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" -no-color -out=tfplan
+        run: |
+          terraform plan \
+            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
+            -no-color -out=tfplan
         continue-on-error: true
 
       - name: Comment Plan on PR
@@ -154,20 +158,31 @@ jobs:
             -target=module.security_groups \
             -target=module.ecr \
             -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
             -auto-approve
 
       - name: Importar recursos K8s existentes
         working-directory: ${{ env.TF_DIR }}
         run: |
-          terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+          terraform import \
+            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
             kubernetes_namespace.togglemaster togglemaster 2>/dev/null || true
-          terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+          terraform import \
+            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
             kubernetes_secret.auth_service togglemaster/auth-service-secret 2>/dev/null || true
-          terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+          terraform import \
+            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
             kubernetes_secret.flag_service togglemaster/flag-secret 2>/dev/null || true
-          terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+          terraform import \
+            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
             kubernetes_secret.targeting_service togglemaster/targeting-secret 2>/dev/null || true
-          terraform import -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+          terraform import \
+            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
             kubernetes_secret.evaluation_service togglemaster/evaluation-secret 2>/dev/null || true
 
       - name: "Fase 2 — Apply completo (RDS, ElastiCache, DynamoDB, SQS, ArgoCD)"
@@ -175,6 +190,7 @@ jobs:
         run: |
           terraform apply \
             -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
             -auto-approve
 
       - name: Configurar kubectl
