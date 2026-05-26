@@ -43,6 +43,21 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Ensure S3 backend bucket exists
+        run: |
+          if ! aws s3api head-bucket --bucket "terraformbucket-fiap-ch3" 2>/dev/null; then
+            echo "Bucket does not exist. Creating..."
+            aws s3api create-bucket \
+              --bucket "terraformbucket-fiap-ch3" \
+              --region "${{ env.AWS_REGION }}"
+            aws s3api put-bucket-versioning \
+              --bucket "terraformbucket-fiap-ch3" \
+              --versioning-configuration Status=Enabled
+            echo "Bucket created and versioning enabled."
+          else
+            echo "Bucket already exists."
+          fi
+
       - name: Terraform Init
         working-directory: ${{ env.TF_DIR }}
         run: |
@@ -103,6 +118,21 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Ensure S3 backend bucket exists
+        run: |
+          if ! aws s3api head-bucket --bucket "terraformbucket-fiap-ch3" 2>/dev/null; then
+            echo "Bucket does not exist. Creating..."
+            aws s3api create-bucket \
+              --bucket "terraformbucket-fiap-ch3" \
+              --region "${{ env.AWS_REGION }}"
+            aws s3api put-bucket-versioning \
+              --bucket "terraformbucket-fiap-ch3" \
+              --versioning-configuration Status=Enabled
+            echo "Bucket created and versioning enabled."
+          else
+            echo "Bucket already exists."
+          fi
 
       - name: Terraform Init
         working-directory: ${{ env.TF_DIR }}
