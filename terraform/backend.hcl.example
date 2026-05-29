@@ -3,7 +3,7 @@
 #
 # Crie o bucket S3 manualmente (Academy costuma exigir) e habilite versionamento.
 
-bucket         = "terraformbucket-fiap-ch3"
+bucket         = "terraformbucket-fiap-ch3-169951220674"
 key            = "togglemaster/fase3/terraform.tfstate"
 region         = "us-east-1"
 encrypt        = true

@@ -45,13 +45,13 @@ jobs:
 
       - name: Ensure S3 backend bucket exists
         run: |
-          if ! aws s3api head-bucket --bucket "terraformbucket-fiap-ch3" 2>/dev/null; then
+          if ! aws s3api head-bucket --bucket "terraformbucket-fiap-ch3-169951220674" 2>/dev/null; then
             echo "Bucket does not exist. Creating..."
             aws s3api create-bucket \
-              --bucket "terraformbucket-fiap-ch3" \
+              --bucket "terraformbucket-fiap-ch3-169951220674" \
               --region "${{ env.AWS_REGION }}"
             aws s3api put-bucket-versioning \
-              --bucket "terraformbucket-fiap-ch3" \
+              --bucket "terraformbucket-fiap-ch3-169951220674" \
               --versioning-configuration Status=Enabled
             echo "Bucket created and versioning enabled."
           else
@@ -62,7 +62,7 @@ jobs:
         working-directory: ${{ env.TF_DIR }}
         run: |
           cat > backend.hcl << 'EOF'
-          bucket  = "terraformbucket-fiap-ch3"
+          bucket  = "terraformbucket-fiap-ch3-169951220674"
           key     = "togglemaster/fase3/terraform.tfstate"
           region  = "us-east-1"
           encrypt = true
@@ -125,13 +125,13 @@ jobs:
 
       - name: Ensure S3 backend bucket exists
         run: |
-          if ! aws s3api head-bucket --bucket "terraformbucket-fiap-ch3" 2>/dev/null; then
+          if ! aws s3api head-bucket --bucket "terraformbucket-fiap-ch3-169951220674" 2>/dev/null; then
             echo "Bucket does not exist. Creating..."
             aws s3api create-bucket \
-              --bucket "terraformbucket-fiap-ch3" \
+              --bucket "terraformbucket-fiap-ch3-169951220674" \
               --region "${{ env.AWS_REGION }}"
             aws s3api put-bucket-versioning \
-              --bucket "terraformbucket-fiap-ch3" \
+              --bucket "terraformbucket-fiap-ch3-169951220674" \
               --versioning-configuration Status=Enabled
             echo "Bucket created and versioning enabled."
           else
@@ -142,7 +142,7 @@ jobs:
         working-directory: ${{ env.TF_DIR }}
         run: |
           cat > backend.hcl << 'EOF'
-          bucket  = "terraformbucket-fiap-ch3"
+          bucket  = "terraformbucket-fiap-ch3-169951220674"
           key     = "togglemaster/fase3/terraform.tfstate"
           region  = "us-east-1"
           encrypt = true
