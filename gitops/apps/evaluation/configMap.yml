@@ -5,8 +5,8 @@ metadata:
   namespace: togglemaster
 data:
   PORT: "8004"
-  REDIS_URL: "redis://togglemaster-dev-redis.letkoj.ng.0001.use1.cache.amazonaws.com:6379"
-  FLAG_SERVICE_URL: "http://flag-service.togglemaster.svc.cluster.local:8002"
-  TARGETING_SERVICE_URL: "http://targeting-service.togglemaster.svc.cluster.local:8003"
+  REDIS_URL: "redis://redis.togglemaster.svc.cluster.local:6379"
+  FLAG_SERVICE_URL: "http://flag-service.togglemaster.svc.cluster.local"
+  TARGETING_SERVICE_URL: "http://targeting-service.togglemaster.svc.cluster.local"
   AWS_REGION: "us-east-1"
-  AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/742792279914/togglemaster-events"
+  AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/169951220674/togglemaster-events"

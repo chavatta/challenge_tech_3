@@ -4,7 +4,7 @@ metadata:
   name: flag-config
   namespace: togglemaster
 data:
-  AUTH_SERVICE_URL: "http://auth-service.togglemaster.svc.cluster.local:8001"
+  AUTH_SERVICE_URL: "http://auth-service.togglemaster.svc.cluster.local"
   PORT: "8002"
 
 
