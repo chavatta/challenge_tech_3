@@ -1,0 +1,98 @@
+================================================================================
+RELATÓRIO DE ENTREGA — TECH CHALLENGE FASE 3 (POSTECH - FIAP)
+================================================================================
+
+Participantes:
+  Lucas Chavatta alves ferreira
+  lucas.chavatta@gmail.com
+
+  André morais Antônio de Salvo
+  andre.dsalvo@gmail.com
+
+  Raquel Oliveira de Figueiredo
+  raquelfigueiredoweb@gmail.com
+
+Links:
+  - Repositório (código): https://github.com/chavatta/challenge_tech_3.git (Ajuste caso mude)
+  - Documentação (README / Wiki): https://github.com/chavatta/challenge_tech_3/blob/main/README.md
+  - Vídeo de demonstração (até 20 min): https://www.youtube.com/watch?v=D_X4UATH3gM
+
+================================================================================
+RESUMO DOS DESAFIOS E DECISÕES
+================================================================================
+
+1. Infraestrutura (Terraform / Academy vs Conta Própria):
+  - Provisionamento Automatizado: Toda a infraestrutura de rede, computação, bancos de dados, mensageria e repositórios é criada utilizando Terraform 1.10+.
+  - Rede Isolada (VPC): Criamos subnets públicas e privadas. O EKS, RDS, Redis e SQS ficam totalmente isolados nas subnets privadas, garantindo a proteção contra acessos internet indesejados.
+  - AWS Academy (Opção A) vs Conta Própria (Opção B): Implementamos flexibilidade no código via variável 'use_lab_role'. Quando 'true', o cluster EKS e os Node Groups reutilizam dinamicamente a role pré-existente 'LabRole' do laboratório AWS Academy (importada por data source no Terraform), contornando a restrição de criação de novos papéis e políticas IAM no ambiente estudantil.
+  - Estado Remoto: Configurado backend remoto no Amazon S3 com criptografia ativa, garantindo a centralização e compartilhamento seguro do estado da infraestrutura de forma consistente.
+
+2. Pipelines (Ferramentas SAST/SCA e Regra de Bloqueio CRITICAL):
+  - Abordagem DevSecOps (Shift-Left): As validações de segurança acontecem em cada Pull Request e Push na branch 'main', impedindo que falhas cheguem ao ambiente de homologação.
+  - Análise Estática de Código (SAST): Utilizamos a ferramenta 'gosec' para os microsserviços em Go (auth e evaluation) e a ferramenta 'bandit' para os microsserviços em Python (flag, targeting e analytics). Ambas procuram por bugs de segurança, credenciais em texto puro e más práticas.
+  - Análise de Dependências (SCA): Utilizamos o 'Trivy fs' para verificar se há CVEs conhecidas nas dependências de bibliotecas de terceiros (go.mod e requirements.txt).
+  - Segurança de Imagem: Após o build Docker, um scan adicional da imagem final é feito pelo Trivy antes de enviá-la para o AWS ECR.
+  - Regra de Bloqueio: Ambas as varreduras de Trivy e SAST são configuradas para retornar um código de erro (exit-code: 1) caso encontrem alguma vulnerabilidade de severidade CRÍTICA, interrompendo imediatamente o fluxo e bloqueando a geração e o deploy da imagem.
+
+3. GitOps (Mono-repo vs Repositório Separado; Branch Protegida):
+  - Estrutura: Adotamos um monorepo bem delimitado. A pasta '/gitops' contém as definições de manifests Kubernetes (Deployments, Services, ConfigMaps) separadas por microsserviço.
+  - Atualização Automática (GitOps Bump): No final da esteira de CI no GitHub Actions (caso os scans e testes passem e a branch seja a 'main'), a nova tag da imagem (baseada no hash do commit: v1.0.0-${{ github.sha }}) é injetada nos arquivos de deployment através do utilitário 'yq'. Em seguida, a pipeline faz commit e push automáticos no repositório de GitOps, garantindo a rastreabilidade e histórico de auditoria.
+
+4. ArgoCD (Acesso ao Cluster, Sincronização e Reconciliação):
+  - Instalação: O ArgoCD é instalado diretamente no cluster EKS via Terraform usando o Helm provider.
+  - Gerenciamento Declarativo: Criamos recursos do tipo Custom Resource Definition (CRD) 'Application' para os 5 microsserviços na pasta '/gitops/argocd/'.
+  - Sincronização Inteligente: Configurado a política 'automated sync' com as opções 'prune' (deleta recursos no Kubernetes que foram removidos do Git) e 'selfHeal' (desfaz qualquer modificação manual indesejada feita no cluster por administradores, reconciliando o estado de volta ao declarado no repositório Git).
+
+5. Custos / Limites do Laboratório:
+  - Dimensionamento Controlado: Para evitar estourar o limite orçamentário de $100 da AWS Academy e prevenir bloqueios na conta, dimensionamos os recursos de forma econômica:
+    * EKS Node Group: Instâncias econômicas 't3.medium' (gerenciamento enxuto de cpu/memória).
+    * RDS PostgreSQL: Instâncias da classe de entrada 'db.t3.micro'.
+    * ElastiCache Redis: Nó econômico 'cache.t3.micro'.
+    * DynamoDB e SQS: Operados sob demanda (On-Demand / Pay-per-use), cujo custo é zero quando o tráfego de simulação está ocioso.
+
+================================================================================
+ESTIMATIVA DE CUSTOS AWS (PRICING CALCULATOR)
+================================================================================
+
+Abaixo, descrevemos a estimativa de custos aproximada para manter o ambiente do ToggleMaster rodando por 1 mês na região us-east-1 (N. Virginia):
+
+1. Cluster Amazon EKS:
+   - Custo fixo do EKS Control Plane: $0.10 por hora -> ~$73.00/mês
+   - Nodes EKS (2x instâncias t3.medium com 20GB gp3 EBS cada):
+     * Computação (t3.medium - 2 vCPU, 4GB RAM): ~$30.36/mês por instância -> ~$60.72/mês (sem contar descontos por Savings Plans)
+     * Armazenamento (40GB gp3): ~$3.20/mês
+     * Total EKS Computação + Disco: ~$63.92/mês
+   - Subtotal EKS: ~$136.92/mês
+
+2. Banco de Dados Relacional (3x instâncias RDS PostgreSQL - db.t3.micro):
+   - Cada instância Single-AZ db.t3.micro com 20GB armazenamento gp3:
+     * Computação: ~$12.41/mês por instância -> ~$37.23/mês
+     * Armazenamento: ~$2.30/mês por instância -> ~$6.90/mês
+   - Subtotal RDS: ~$44.13/mês
+
+3. Memória em Cache (1x nó ElastiCache Redis - cache.t3.micro):
+   - Computação Single-AZ: ~$12.26/mês
+   - Subtotal Redis: ~$12.26/mês
+
+4. DynamoDB (Tabela ToggleMasterAnalytics):
+   - Modo sob demanda (On-demand): cobrado por volume de leitura/escrita.
+   - Para fins de estimativa de desenvolvimento (1 milhão de escritas/leituras): ~$1.25/mês
+   - Subtotal DynamoDB: ~$1.25/mês
+
+5. Mensageria Amazon SQS e Amazon ECR:
+   - SQS: 1 milhão de requisições por mês estão cobertas pelo Free Tier (custo zero).
+   - ECR: Armazenamento de 5 imagens Docker (~200MB cada): ~$0.10/mês.
+   - Subtotal Mensageria/ECR: ~$0.10/mês
+
+6. Rede e Transferência de Dados:
+   - NAT Gateway (1x ativo):
+     * Custo por hora: ~$32.85/mês
+     * Dados processados (estimados em 10GB): ~$0.45/mês
+   - Subtotal Rede: ~$33.30/mês
+
+--------------------------------------------------------------------------------
+CUSTO TOTAL ESTIMADO: ~$227.96 / mês
+--------------------------------------------------------------------------------
+
+
+

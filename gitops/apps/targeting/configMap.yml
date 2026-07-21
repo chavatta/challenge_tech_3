@@ -6,5 +6,6 @@ metadata:
 data:
   AUTH_SERVICE_URL: "http://auth-service.togglemaster.svc.cluster.local"
   PORT: "8003"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.monitoring.svc.cluster.local:4317"
 
 

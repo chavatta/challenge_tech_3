@@ -10,3 +10,4 @@ data:
   TARGETING_SERVICE_URL: "http://targeting-service.togglemaster.svc.cluster.local"
   AWS_REGION: "us-east-1"
   AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/169951220674/togglemaster-events"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector.monitoring.svc.cluster.local:4317"

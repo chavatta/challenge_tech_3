@@ -197,10 +197,90 @@ jobs:
         run: |
           aws eks update-kubeconfig --name togglemaster-dev-eks --region ${{ env.AWS_REGION }}
 
+      # ── Substituir placeholders com secrets reais ──────────────────────
+      - name: Injetar credenciais de observabilidade nos manifests
+        env:
+          PAGERDUTY_KEY: ${{ secrets.PAGERDUTY_ROUTING_KEY }}
+          DISCORD_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          NEWRELIC_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+        run: |
+          echo "📦 Substituindo placeholders nos manifests..."
+
+          # PagerDuty + Discord no application-prometheus.yaml
+          if [ -n "$PAGERDUTY_KEY" ]; then
+            sed -i "s|__PAGERDUTY_ROUTING_KEY__|${PAGERDUTY_KEY}|g" gitops/argocd/application-prometheus.yaml
+            echo "✅ PagerDuty Routing Key injetada"
+          else
+            echo "⚠️ PAGERDUTY_ROUTING_KEY não configurada — mantendo placeholder"
+          fi
+
+          if [ -n "$DISCORD_URL" ]; then
+            sed -i "s|__DISCORD_WEBHOOK_URL__|${DISCORD_URL}|g" gitops/argocd/application-prometheus.yaml
+            echo "✅ Discord Webhook URL injetada"
+          else
+            echo "⚠️ DISCORD_WEBHOOK_URL não configurada — mantendo placeholder"
+          fi
+
+          # New Relic no newrelic-secret.yaml
+          if [ -n "$NEWRELIC_KEY" ]; then
+            sed -i "s|__NEW_RELIC_API_KEY__|${NEWRELIC_KEY}|g" gitops/apps/monitoring/newrelic-secret.yaml
+            echo "✅ New Relic API Key injetada"
+          else
+            echo "⚠️ NEW_RELIC_API_KEY não configurada — mantendo placeholder"
+          fi
+
+      # ── Aplicar Namespaces ─────────────────────────────────────────────
+      - name: Aplicar Namespaces
+        run: |
+          echo "📁 Criando namespaces..."
+          kubectl apply -f gitops/namespaces/
+          echo "✅ Namespaces criados"
+
+      # ── Aplicar ArgoCD Applications ────────────────────────────────────
       - name: Aplicar ArgoCD Applications
         run: |
+          echo "🚀 Registrando Applications no ArgoCD..."
           kubectl apply -f gitops/argocd/
+          echo "✅ Applications registradas"
 
+      # ── Aplicar Manifests de Monitoring ────────────────────────────────
+      - name: Aplicar stack de Monitoring
+        run: |
+          echo "📊 Aplicando manifests de monitoring..."
+          kubectl apply -f gitops/apps/monitoring/
+          echo "✅ OTel Collector, Dashboard, PrometheusRules e NewRelic Secret aplicados"
+
+      # ── Aplicar Manifests de Self-Healing ──────────────────────────────
+      - name: Aplicar Self-Healing
+        run: |
+          echo "🔄 Aplicando manifests de self-healing..."
+          kubectl apply -f gitops/apps/self-healing/
+          echo "✅ RBAC, Deployment e Service do self-healing aplicados"
+
+      # ── Reiniciar pods para aplicar novos secrets ──────────────────────
       - name: Reiniciar pods para aplicar novos secrets
         run: |
           kubectl rollout restart deployment -n togglemaster 2>/dev/null || true
+          kubectl rollout restart deployment -n monitoring otel-collector 2>/dev/null || true
+          echo "✅ Rollout restart executado"
+
+      # ── Aguardar ArgoCD sync ───────────────────────────────────────────
+      - name: Aguardar sincronização do ArgoCD
+        run: |
+          echo "⏳ Aguardando ArgoCD sincronizar as Applications..."
+          sleep 30
+
+          echo "📋 Status das Applications:"
+          kubectl get applications -n argocd -o wide || true
+
+          echo ""
+          echo "📋 Pods em monitoring:"
+          kubectl get pods -n monitoring || true
+
+          echo ""
+          echo "📋 Pods em togglemaster:"
+          kubectl get pods -n togglemaster || true
+
+          echo ""
+          echo "🎉 Deploy completo!"
+

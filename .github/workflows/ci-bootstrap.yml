@@ -1,0 +1,326 @@
+name: 🚀 Bootstrap — Deploy completo do zero
+
+# Workflow manual para subir todo o ambiente de uma vez
+# Ideal para labs AWS Academy com sessões temporárias
+on:
+  workflow_dispatch:
+    inputs:
+      skip_terraform:
+        description: 'Pular Terraform (infra já existe)?'
+        required: false
+        type: boolean
+        default: false
+      skip_microservices:
+        description: 'Pular build dos microsserviços (imagens já existem no ECR)?'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  TF_DIR: terraform
+  AWS_REGION: us-east-1
+
+jobs:
+  # ════════════════════════════════════════════════════════════════════════
+  # Fase 1: Infraestrutura (Terraform)
+  # ════════════════════════════════════════════════════════════════════════
+  infrastructure:
+    name: "🏗️ Fase 1 — Infraestrutura"
+    if: ${{ !inputs.skip_terraform }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.5"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Ensure S3 backend bucket exists
+        run: |
+          if ! aws s3api head-bucket --bucket "terraformbucket-fiap-ch3-169951220674" 2>/dev/null; then
+            echo "Bucket does not exist. Creating..."
+            aws s3api create-bucket \
+              --bucket "terraformbucket-fiap-ch3-169951220674" \
+              --region "${{ env.AWS_REGION }}"
+            aws s3api put-bucket-versioning \
+              --bucket "terraformbucket-fiap-ch3-169951220674" \
+              --versioning-configuration Status=Enabled
+            echo "Bucket created and versioning enabled."
+          else
+            echo "Bucket already exists."
+          fi
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          cat > backend.hcl << 'EOF'
+          bucket  = "terraformbucket-fiap-ch3-169951220674"
+          key     = "togglemaster/fase3/terraform.tfstate"
+          region  = "us-east-1"
+          encrypt = true
+          EOF
+          terraform init -backend-config=backend.hcl
+
+      - name: "Fase 1 — VPC, EKS e Security Groups"
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform apply \
+            -target=module.vpc \
+            -target=module.eks \
+            -target=module.security_groups \
+            -target=module.ecr \
+            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
+            -auto-approve
+
+      - name: Importar recursos K8s existentes
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform import \
+            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
+            kubernetes_namespace.togglemaster togglemaster 2>/dev/null || true
+          terraform import \
+            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
+            kubernetes_secret.auth_service togglemaster/auth-service-secret 2>/dev/null || true
+          terraform import \
+            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
+            kubernetes_secret.flag_service togglemaster/flag-secret 2>/dev/null || true
+          terraform import \
+            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
+            kubernetes_secret.targeting_service togglemaster/targeting-secret 2>/dev/null || true
+          terraform import \
+            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
+            kubernetes_secret.evaluation_service togglemaster/evaluation-secret 2>/dev/null || true
+
+      - name: "Fase 2 — Apply completo (RDS, ElastiCache, DynamoDB, SQS, ArgoCD)"
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform apply \
+            -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" \
+            -var="argo_password=${{ secrets.TF_VAR_ARGO_PASSWORD }}" \
+            -auto-approve
+
+  # ════════════════════════════════════════════════════════════════════════
+  # Fase 2: Build e Push dos microsserviços
+  # ════════════════════════════════════════════════════════════════════════
+  build-auth:
+    name: "🔨 Build auth"
+    needs: [infrastructure]
+    if: ${{ !inputs.skip_microservices && always() && (needs.infrastructure.result == 'success' || needs.infrastructure.result == 'skipped') }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/reusable-go-microservice.yml
+    secrets: inherit
+    with:
+      service_name: auth
+      service_path: services/auth
+      ecr_repository: togglemaster-auth
+      gitops_manifest: gitops/apps/auth/deployment.yaml
+
+  build-evaluation:
+    name: "🔨 Build evaluation"
+    needs: [infrastructure]
+    if: ${{ !inputs.skip_microservices && always() && (needs.infrastructure.result == 'success' || needs.infrastructure.result == 'skipped') }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/reusable-go-microservice.yml
+    secrets: inherit
+    with:
+      service_name: evaluation
+      service_path: services/evaluation
+      ecr_repository: togglemaster-evaluation
+      gitops_manifest: gitops/apps/evaluation/deployment.yaml
+
+  build-flag:
+    name: "🔨 Build flag"
+    needs: [infrastructure]
+    if: ${{ !inputs.skip_microservices && always() && (needs.infrastructure.result == 'success' || needs.infrastructure.result == 'skipped') }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/reusable-python-microservice.yml
+    secrets: inherit
+    with:
+      service_name: flag
+      service_path: services/flag
+      ecr_repository: togglemaster-flag
+      gitops_manifest: gitops/apps/flag/deployment.yaml
+
+  build-targeting:
+    name: "🔨 Build targeting"
+    needs: [infrastructure]
+    if: ${{ !inputs.skip_microservices && always() && (needs.infrastructure.result == 'success' || needs.infrastructure.result == 'skipped') }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/reusable-python-microservice.yml
+    secrets: inherit
+    with:
+      service_name: targeting
+      service_path: services/targeting
+      ecr_repository: togglemaster-targeting
+      gitops_manifest: gitops/apps/targeting/deployment.yaml
+
+  build-analytics:
+    name: "🔨 Build analytics"
+    needs: [infrastructure]
+    if: ${{ !inputs.skip_microservices && always() && (needs.infrastructure.result == 'success' || needs.infrastructure.result == 'skipped') }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/reusable-python-microservice.yml
+    secrets: inherit
+    with:
+      service_name: analytics
+      service_path: services/analytics
+      ecr_repository: togglemaster-analytics
+      gitops_manifest: gitops/apps/analytics/deployment.yaml
+
+  build-self-healing:
+    name: "🔨 Build self-healing"
+    needs: [infrastructure]
+    if: ${{ !inputs.skip_microservices && always() && (needs.infrastructure.result == 'success' || needs.infrastructure.result == 'skipped') }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/reusable-python-microservice.yml
+    secrets: inherit
+    with:
+      service_name: self-healing
+      service_path: services/self-healing
+      ecr_repository: togglemaster-selfhealing
+      gitops_manifest: gitops/apps/self-healing/deployment.yaml
+
+  # ════════════════════════════════════════════════════════════════════════
+  # Fase 3: Deploy GitOps (Namespaces, ArgoCD, Monitoring, Self-Healing)
+  # ════════════════════════════════════════════════════════════════════════
+  deploy-gitops:
+    name: "🚀 Fase 3 — Deploy GitOps completo"
+    needs: [infrastructure, build-auth, build-evaluation, build-flag, build-targeting, build-analytics, build-self-healing]
+    if: always() && (needs.infrastructure.result == 'success' || needs.infrastructure.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configurar kubectl
+        run: |
+          aws eks update-kubeconfig --name togglemaster-dev-eks --region ${{ env.AWS_REGION }}
+
+      # ── Substituir placeholders com secrets reais ──────────────────────
+      - name: Injetar credenciais de observabilidade nos manifests
+        env:
+          PAGERDUTY_KEY: ${{ secrets.PAGERDUTY_ROUTING_KEY }}
+          DISCORD_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          NEWRELIC_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+        run: |
+          echo "📦 Substituindo placeholders nos manifests..."
+
+          if [ -n "$PAGERDUTY_KEY" ]; then
+            sed -i "s|__PAGERDUTY_ROUTING_KEY__|${PAGERDUTY_KEY}|g" gitops/argocd/application-prometheus.yaml
+            echo "✅ PagerDuty Routing Key injetada"
+          else
+            echo "⚠️ PAGERDUTY_ROUTING_KEY não configurada — mantendo placeholder"
+          fi
+
+          if [ -n "$DISCORD_URL" ]; then
+            sed -i "s|__DISCORD_WEBHOOK_URL__|${DISCORD_URL}|g" gitops/argocd/application-prometheus.yaml
+            echo "✅ Discord Webhook URL injetada"
+          else
+            echo "⚠️ DISCORD_WEBHOOK_URL não configurada — mantendo placeholder"
+          fi
+
+          if [ -n "$NEWRELIC_KEY" ]; then
+            sed -i "s|__NEW_RELIC_API_KEY__|${NEWRELIC_KEY}|g" gitops/apps/monitoring/newrelic-secret.yaml
+            echo "✅ New Relic API Key injetada"
+          else
+            echo "⚠️ NEW_RELIC_API_KEY não configurada — mantendo placeholder"
+          fi
+
+      # ── Aplicar tudo ───────────────────────────────────────────────────
+      - name: Aplicar Namespaces
+        run: |
+          echo "📁 Criando namespaces..."
+          kubectl apply -f gitops/namespaces/
+          echo "✅ Namespaces criados"
+
+      - name: Aplicar ArgoCD Applications
+        run: |
+          echo "🚀 Registrando Applications no ArgoCD..."
+          kubectl apply -f gitops/argocd/
+          echo "✅ Applications registradas"
+
+      - name: Aplicar stack de Monitoring
+        run: |
+          echo "📊 Aplicando manifests de monitoring..."
+          kubectl apply -f gitops/apps/monitoring/
+          echo "✅ OTel Collector, Dashboard, PrometheusRules e NewRelic Secret aplicados"
+
+      - name: Aplicar Self-Healing
+        run: |
+          echo "🔄 Aplicando manifests de self-healing..."
+          kubectl apply -f gitops/apps/self-healing/
+          echo "✅ RBAC, Deployment e Service do self-healing aplicados"
+
+      - name: Reiniciar pods
+        run: |
+          kubectl rollout restart deployment -n togglemaster 2>/dev/null || true
+          kubectl rollout restart deployment -n monitoring otel-collector 2>/dev/null || true
+          echo "✅ Rollout restart executado"
+
+      # ── Verificação final ──────────────────────────────────────────────
+      - name: Verificação final do ambiente
+        run: |
+          echo "⏳ Aguardando 60 segundos para estabilização..."
+          sleep 60
+
+          echo ""
+          echo "════════════════════════════════════════════"
+          echo "📋 STATUS FINAL DO AMBIENTE"
+          echo "════════════════════════════════════════════"
+
+          echo ""
+          echo "🔷 ArgoCD Applications:"
+          kubectl get applications -n argocd -o wide || true
+
+          echo ""
+          echo "🔷 Pods em monitoring:"
+          kubectl get pods -n monitoring || true
+
+          echo ""
+          echo "🔷 Pods em togglemaster:"
+          kubectl get pods -n togglemaster || true
+
+          echo ""
+          echo "🔷 Services (URLs externas):"
+          kubectl get svc -n monitoring togglemaster-prometheus-grafana -o wide 2>/dev/null || true
+          kubectl get svc -n argocd argocd-server -o wide 2>/dev/null || true
+          kubectl get svc -n togglemaster -o wide 2>/dev/null || true
+
+          echo ""
+          echo "🎉 Bootstrap completo! Ambiente ToggleMaster pronto."

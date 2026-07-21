@@ -8,3 +8,4 @@ data:
   AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/169951220674/togglemaster-events"
   AWS_DYNAMODB_TABLE: "ToggleMasterAnalytics"
   AWS_REGION: "us-east-1"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.monitoring.svc.cluster.local:4317"

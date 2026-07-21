@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/joho/godotenv"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 // App struct (para injeção de dependência)
@@ -36,6 +38,16 @@ func main() {
 		log.Fatal("MASTER_KEY deve ser definida")
 	}
 
+	// --- Telemetria OpenTelemetry ---
+	otelShutdown, err := InitTelemetry("auth-service")
+	if err == nil && otelShutdown != nil {
+		defer func() {
+			if err := otelShutdown(context.Background()); err != nil {
+				log.Printf("failed to shutdown telemetry: %v", err)
+			}
+		}()
+	}
+
 	// --- Conexão com o Banco ---
 	db, err := connectDB(databaseURL)
 	if err != nil {
@@ -62,8 +74,11 @@ func main() {
 	// Eles são protegidos pelo middleware de autenticação
 	mux.Handle("/admin/keys", app.masterKeyAuthMiddleware(http.HandlerFunc(app.createKeyHandler)))
 
+	// Envelopa o mux com a instrumentação do OpenTelemetry
+	otelHandler := otelhttp.NewHandler(mux, "auth-service-http")
+
 	log.Printf("Serviço de Autenticação (Go) rodando na porta %s", port)
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	if err := http.ListenAndServe(":"+port, otelHandler); err != nil {
 		log.Fatal(err)
 	}
 }

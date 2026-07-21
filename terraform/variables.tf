@@ -114,6 +114,7 @@ variable "ecr_repositories" {
     "togglemaster-targeting",
     "togglemaster-evaluation",
     "togglemaster-analytics",
+    "togglemaster-selfhealing",
   ]
 }
 

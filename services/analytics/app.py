@@ -176,6 +176,8 @@ def sqs_worker_loop():
 # --- Servidor Flask (Apenas para Health Check) ---
 
 app = Flask(__name__)
+from telemetry import instrument_app
+instrument_app(app, "analytics-service")
 
 @app.route('/health')
 def health():

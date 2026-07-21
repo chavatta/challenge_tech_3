@@ -17,6 +17,8 @@ log = logging.getLogger(__name__)
 load_dotenv() 
 
 app = Flask(__name__)
+from telemetry import instrument_app
+instrument_app(app, "flag-service")
 
 # --- Configuração ---
 # Docker Compose usa FLAG_DATABASE_URL; local pode usar DATABASE_URL

@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: togglemaster-alert-rules
+  namespace: monitoring
+  labels:
+    release: togglemaster-prometheus
+spec:
+  groups:
+    - name: togglemaster.rules
+      rules:
+        - alert: AuthServiceHighErrorRate
+          expr: sum by (service_name) (rate(http_server_duration_count{service_name="auth-service", http_status_code=~"5.."}[2m])) / sum by (service_name) (rate(http_server_duration_count{service_name="auth-service"}[2m])) > 0.05
+          for: 10s
+          labels:
+            severity: critical
+            service: auth-service
+          annotations:
+            summary: "High 5xx error rate on auth-service"
+            description: "auth-service 5xx error rate is above 5% (current value: {{ $value }})"

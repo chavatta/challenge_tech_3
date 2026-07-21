@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: self-healing-service
+  namespace: togglemaster
+  labels:
+    app: self-healing-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: self-healing-service
+  template:
+    metadata:
+      labels:
+        app: self-healing-service
+    spec:
+      serviceAccountName: self-healing-sa
+      containers:
+        - name: self-healing-service
+          image: 169951220674.dkr.ecr.us-east-1.amazonaws.com/togglemaster-selfhealing:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
