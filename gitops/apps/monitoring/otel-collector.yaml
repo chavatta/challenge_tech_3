@@ -111,6 +111,8 @@ kind: Service
 metadata:
   name: otel-collector
   namespace: monitoring
+  labels:
+    app: otel-collector
 spec:
   ports:
     - name: otlp-grpc
