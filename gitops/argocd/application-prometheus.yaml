@@ -34,6 +34,12 @@ spec:
           service:
             type: LoadBalancer
           additionalDataSources:
+            - name: Prometheus
+              type: prometheus
+              uid: prometheus
+              access: proxy
+              isDefault: true
+              url: http://togglemaster-prometheus-ku-prometheus.monitoring.svc.cluster.local:9090
             - name: Loki
               type: loki
               uid: loki
