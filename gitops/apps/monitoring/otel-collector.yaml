@@ -31,8 +31,8 @@ data:
         # Converte resource attributes (service.name) em label service_name
         resource_to_telemetry_conversion:
           enabled: true
-      otlp/newrelic:
-        endpoint: otlp.nr-data.net:4317
+      otlphttp/newrelic:
+        endpoint: https://otlp.nr-data.net:4318
         headers:
           api-key: "${env:NEW_RELIC_API_KEY}"
       loki:
@@ -42,11 +42,11 @@ data:
         traces:
           receivers: [otlp]
           processors: [batch]
-          exporters: [otlp/newrelic]
+          exporters: [otlphttp/newrelic]
         metrics:
           receivers: [otlp]
           processors: [batch]
-          exporters: [prometheus, otlp/newrelic]
+          exporters: [prometheus, otlphttp/newrelic]
         logs:
           receivers: [otlp]
           processors: [resource, batch]
