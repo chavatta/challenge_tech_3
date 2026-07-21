@@ -40,7 +40,9 @@ spec:
               access: proxy
               isDefault: true
               url: http://togglemaster-prometheus-ku-prometheus.monitoring.svc.cluster.local:9090
-            - name: Loki
+            # Nome distinto do datasource "Loki" criado pelo loki-stack (que
+            # nasce sem uid); este garante um uid estavel "loki" para os paineis
+            - name: Loki (App)
               type: loki
               uid: loki
               access: proxy
