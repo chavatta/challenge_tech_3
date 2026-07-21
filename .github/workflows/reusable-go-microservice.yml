@@ -131,7 +131,7 @@ jobs:
           for attempt in 1 2 3; do
             echo "Tentativa $attempt/3"
 
-            git pull
+            git pull --rebase --autostash origin main
 
             git add "${{ inputs.gitops_manifest }}"
 
