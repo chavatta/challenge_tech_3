@@ -18,7 +18,7 @@ spec:
       serviceAccountName: self-healing-sa
       containers:
         - name: self-healing-service
-          image: 360230583529.dkr.ecr.us-east-1.amazonaws.com/togglemaster-selfhealing:v1.0.0-0f191310801d013908ab6904d373a1e4acaa6a81
+          image: 360230583529.dkr.ecr.us-east-1.amazonaws.com/togglemaster-selfhealing:v1.0.0-a7079d3b72f9938a2f8aefb8d686cf59ccfc7e01
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
