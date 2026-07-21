@@ -11,6 +11,10 @@ spec:
     repoURL: https://github.com/chavatta/challenge_tech_3.git
     targetRevision: main
     path: gitops/apps/monitoring
+    directory:
+      # O secret do New Relic e gerenciado pelo pipeline (injecao de GitHub
+      # Secret); excluido do sync para o ArgoCD nao restaurar o placeholder
+      exclude: "newrelic-secret.yaml"
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
