@@ -3,7 +3,9 @@
 #
 # Crie o bucket S3 manualmente (Academy costuma exigir) e habilite versionamento.
 
-bucket         = "terraformbucket-fiap-ch3-169951220674"
+# O nome do bucket usa o ID da conta AWS atual (os pipelines derivam automaticamente):
+#   terraformbucket-fiap-ch3-<AWS_ACCOUNT_ID>
+bucket         = "terraformbucket-fiap-ch3-360230583529"
 key            = "togglemaster/fase3/terraform.tfstate"
 region         = "us-east-1"
 encrypt        = true

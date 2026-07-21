@@ -43,15 +43,21 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Definir bucket do backend Terraform (por conta AWS)
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "TF_STATE_BUCKET=terraformbucket-fiap-ch3-${ACCOUNT_ID}" >> "$GITHUB_ENV"
+          echo "Bucket do backend: terraformbucket-fiap-ch3-${ACCOUNT_ID}"
+
       - name: Ensure S3 backend bucket exists
         run: |
-          if ! aws s3api head-bucket --bucket "terraformbucket-fiap-ch3-169951220674" 2>/dev/null; then
+          if ! aws s3api head-bucket --bucket "$TF_STATE_BUCKET" 2>/dev/null; then
             echo "Bucket does not exist. Creating..."
             aws s3api create-bucket \
-              --bucket "terraformbucket-fiap-ch3-169951220674" \
+              --bucket "$TF_STATE_BUCKET" \
               --region "${{ env.AWS_REGION }}"
             aws s3api put-bucket-versioning \
-              --bucket "terraformbucket-fiap-ch3-169951220674" \
+              --bucket "$TF_STATE_BUCKET" \
               --versioning-configuration Status=Enabled
             echo "Bucket created and versioning enabled."
           else
@@ -61,8 +67,8 @@ jobs:
       - name: Terraform Init
         working-directory: ${{ env.TF_DIR }}
         run: |
-          cat > backend.hcl << 'EOF'
-          bucket  = "terraformbucket-fiap-ch3-169951220674"
+          cat > backend.hcl << EOF
+          bucket  = "${TF_STATE_BUCKET}"
           key     = "togglemaster/fase3/terraform.tfstate"
           region  = "us-east-1"
           encrypt = true
@@ -123,15 +129,21 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Definir bucket do backend Terraform (por conta AWS)
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "TF_STATE_BUCKET=terraformbucket-fiap-ch3-${ACCOUNT_ID}" >> "$GITHUB_ENV"
+          echo "Bucket do backend: terraformbucket-fiap-ch3-${ACCOUNT_ID}"
+
       - name: Ensure S3 backend bucket exists
         run: |
-          if ! aws s3api head-bucket --bucket "terraformbucket-fiap-ch3-169951220674" 2>/dev/null; then
+          if ! aws s3api head-bucket --bucket "$TF_STATE_BUCKET" 2>/dev/null; then
             echo "Bucket does not exist. Creating..."
             aws s3api create-bucket \
-              --bucket "terraformbucket-fiap-ch3-169951220674" \
+              --bucket "$TF_STATE_BUCKET" \
               --region "${{ env.AWS_REGION }}"
             aws s3api put-bucket-versioning \
-              --bucket "terraformbucket-fiap-ch3-169951220674" \
+              --bucket "$TF_STATE_BUCKET" \
               --versioning-configuration Status=Enabled
             echo "Bucket created and versioning enabled."
           else
@@ -141,8 +153,8 @@ jobs:
       - name: Terraform Init
         working-directory: ${{ env.TF_DIR }}
         run: |
-          cat > backend.hcl << 'EOF'
-          bucket  = "terraformbucket-fiap-ch3-169951220674"
+          cat > backend.hcl << EOF
+          bucket  = "${TF_STATE_BUCKET}"
           key     = "togglemaster/fase3/terraform.tfstate"
           region  = "us-east-1"
           encrypt = true
