@@ -18,7 +18,7 @@ spec:
       containers:
         - name: flag-service
           # Troque pela sua imagem no registry (ex.: ECR)
-          image: 360230583529.dkr.ecr.us-east-1.amazonaws.com/togglemaster-flag:v1.0.0-a282e149a9de8180f563e74f67eccd8ac21961d8
+          image: 360230583529.dkr.ecr.us-east-1.amazonaws.com/togglemaster-flag:v1.0.0-a7079d3b72f9938a2f8aefb8d686cf59ccfc7e01
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8002
