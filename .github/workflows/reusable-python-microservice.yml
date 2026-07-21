@@ -57,7 +57,7 @@ jobs:
         run: bandit -q -r app -x tests
 
       - name: Trivy filesystem (SCA) — falha em CRITICAL
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: ${{ inputs.service_path }}
@@ -69,7 +69,7 @@ jobs:
         run: docker build -t "${{ inputs.ecr_repository }}:v1.0.0-${{ github.sha }}" .
 
       - name: Trivy image scan — falha em CRITICAL
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: image
           image-ref: "${{ inputs.ecr_repository }}:v1.0.0-${{ github.sha }}"
