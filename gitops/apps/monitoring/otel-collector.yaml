@@ -76,7 +76,7 @@ spec:
         - name: otel-collector
           image: otel/opentelemetry-collector-contrib:0.95.0
           command:
-            - "/otelcol"
+            - "/otelcol-contrib"
             - "--config=/conf/otel-collector-config.yaml"
           env:
             - name: NEW_RELIC_API_KEY

@@ -24,7 +24,7 @@ RUN pip install --no-cache-dir /wheels/* \
     && rm -rf /wheels
 
 
-COPY app.py .
+COPY app.py telemetry.py ./
 
 EXPOSE 8002
 
