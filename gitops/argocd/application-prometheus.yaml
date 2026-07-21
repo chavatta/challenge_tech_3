@@ -33,12 +33,20 @@ spec:
           adminPassword: admin
           service:
             type: LoadBalancer
+          sidecar:
+            datasources:
+              # Desabilita o datasource Prometheus default automatico do stack.
+              # Ele colidia (mesmo nome/uid) com o nosso e, sendo isDefault, criava
+              # um segundo default junto com o Loki do loki-stack -> o Grafana
+              # rejeitava TODO o provisioning ("only one default datasource").
+              defaultDatasourceEnabled: false
           additionalDataSources:
+            # Prometheus explicito, sem isDefault (o loki-stack ja marca o Loki
+            # dele como o unico default). Os paineis referenciam uid=prometheus.
             - name: Prometheus
               type: prometheus
               uid: prometheus
               access: proxy
-              isDefault: true
               url: http://togglemaster-prometheus-ku-prometheus.monitoring.svc.cluster.local:9090
             # Nome distinto do datasource "Loki" criado pelo loki-stack (que
             # nasce sem uid); este garante um uid estavel "loki" para os paineis
