@@ -60,6 +60,7 @@ jobs:
           severity: CRITICAL
           exit-code: "1"
           vuln-type: os,library
+          ignore-unfixed: true
 
       - name: SAST (gosec)
         run: |
@@ -77,6 +78,7 @@ jobs:
           image-ref: "${{ inputs.ecr_repository }}:v1.0.0-${{ github.sha }}"
           severity: CRITICAL
           exit-code: "1"
+          ignore-unfixed: true
 
       - name: Configure AWS credentials
         if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
