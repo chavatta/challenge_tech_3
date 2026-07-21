@@ -84,8 +84,8 @@ def ensure_dynamodb_table():
     log.info(f"Criando tabela DynamoDB '{DYNAMODB_TABLE_NAME}' (DynamoDB CreateTable)...")
     dynamodb_client.create_table(
         TableName=DYNAMODB_TABLE_NAME,
-        AttributeDefinitions=[{"AttributeName": "event_id", "AttributeType": "S"}],
-        KeySchema=[{"AttributeName": "event_id", "KeyType": "HASH"}],
+        AttributeDefinitions=[{"AttributeName": "id", "AttributeType": "S"}],
+        KeySchema=[{"AttributeName": "id", "KeyType": "HASH"}],
         ProvisionedThroughput={"ReadCapacityUnits": 1, "WriteCapacityUnits": 1},
     )
 
@@ -108,12 +108,12 @@ def process_message(message):
         log.info(f"Processando mensagem ID: {message['MessageId']}")
         body = json.loads(message['Body'])
         
-        # Gera um ID único para o item no DynamoDB
+        # Gera um ID único para o item no DynamoDB (partition key da tabela = "id")
         event_id = str(uuid.uuid4())
-        
+
         # Constrói o item no formato do DynamoDB
         item = {
-            'event_id': {'S': event_id},
+            'id': {'S': event_id},
             'user_id': {'S': body['user_id']},
             'flag_name': {'S': body['flag_name']},
             'result': {'BOOL': body['result']},
