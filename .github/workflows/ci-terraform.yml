@@ -256,6 +256,20 @@ jobs:
           echo "✅ Applications registradas"
 
       # ── Aplicar Manifests de Monitoring ────────────────────────────────
+      - name: Aguardar CRDs do Prometheus Operator
+        run: |
+          echo "⏳ Aguardando o ArgoCD instalar as CRDs do kube-prometheus-stack..."
+          for i in $(seq 1 40); do
+            if kubectl get crd prometheusrules.monitoring.coreos.com >/dev/null 2>&1 \
+               && kubectl get crd servicemonitors.monitoring.coreos.com >/dev/null 2>&1; then
+              echo "✅ CRDs disponíveis (tentativa $i)."
+              break
+            fi
+            echo "  ... tentativa $i/40 — CRDs ainda não disponíveis, aguardando 15s"
+            sleep 15
+          done
+          kubectl get crd | grep monitoring.coreos.com || echo "⚠️ CRDs ausentes após 10min — o apply de monitoring pode falhar"
+
       - name: Aplicar stack de Monitoring
         run: |
           echo "📊 Aplicando manifests de monitoring..."

@@ -8,6 +8,7 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from functools import wraps
 import logging
+from telemetry import instrument_app
 
 # Configura o logging
 logging.basicConfig(level=logging.INFO)
@@ -17,7 +18,6 @@ log = logging.getLogger(__name__)
 load_dotenv() 
 
 app = Flask(__name__)
-from telemetry import instrument_app
 instrument_app(app, "targeting-service")
 
 # --- Configuração ---

@@ -53,7 +53,7 @@ jobs:
           args: --timeout 5m
 
       - name: Trivy filesystem (SCA) — falha em CRITICAL
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: fs
           scan-ref: ${{ inputs.service_path }}
@@ -71,7 +71,7 @@ jobs:
         run: docker build -t "${{ inputs.ecr_repository }}:v1.0.0-${{ github.sha }}" .
 
       - name: Trivy image scan — falha em CRITICAL
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: image
           image-ref: "${{ inputs.ecr_repository }}:v1.0.0-${{ github.sha }}"
