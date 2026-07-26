@@ -22,6 +22,22 @@ data:
           - key: loki.resource.labels
             value: service.name
             action: insert
+      # Normaliza o HELP das métricas HTTP de duração. Os serviços misturam
+      # versões de instrumentação OTel (Go otelhttp x Python Flask/requests),
+      # então a mesma família (ex.: http_server_duration) chegava ao
+      # prometheusexporter com textos de "help" diferentes — o Prometheus exige
+      # um único HELP por família, e o mismatch abortava o gather inteiro do
+      # /metrics ("error gathering metrics"). Fixamos a descrição por nome de
+      # métrica para que todas as séries concordem.
+      transform/normalize_http_help:
+        error_mode: ignore
+        metric_statements:
+          - context: metric
+            statements:
+              - set(description, "Measures the duration of inbound HTTP requests.") where name == "http.server.duration"
+              - set(description, "Measures the duration of outbound HTTP requests.") where name == "http.client.duration"
+              - set(description, "Duration of HTTP server requests.") where name == "http.server.request.duration"
+              - set(description, "Duration of HTTP client requests.") where name == "http.client.request.duration"
     exporters:
       prometheus:
         endpoint: 0.0.0.0:8889
@@ -45,7 +61,7 @@ data:
           exporters: [otlphttp/newrelic]
         metrics:
           receivers: [otlp]
-          processors: [batch]
+          processors: [transform/normalize_http_help, batch]
           exporters: [prometheus, otlphttp/newrelic]
         logs:
           receivers: [otlp]
